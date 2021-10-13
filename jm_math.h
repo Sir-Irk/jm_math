@@ -78,7 +78,7 @@ typedef double r64;
 #define JM_MATH_USE_SSE
 #define JM_MATH_USE_AVX
 #define JM_MATH_USE_SSE_TRANSCENDENTALS
-#define JM_MATH_USE_STDLIB
+
 #endif // JM_MATH_USE_SIMD_ALL
 
 #ifdef JM_MATH_USE_SSE
@@ -239,12 +239,6 @@ inline v2 jmReflect(r32 x, r32 y, v2 normal);
 // NOTE: clamps a vector within an axis-aligned bounding box with the center of the box as the origin.
 inline v2 jmClampInRect(v2 current, v2 min, v2 max);
 
-// NOTE: returns a random point within a unit circle. Can also be looked at as a random directon
-//       whose magnitude is between 0 and 1.
-#ifdef JM_MATH_USE_STDLIB
-inline v2 jmRandInUnitCircle(r32 scalar);
-#endif
-
 //=========================================================================================================
 //
 // NOTE: v3 Declarations
@@ -322,12 +316,6 @@ inline v3 jmNlerp(r32 startX, r32 startY, r32 startZ, r32 endX, r32 endY, r32 en
 
 inline v3 jmSlerp(v3 start, v3 end, r32 percent);
 inline v3 jmSlerp(r32 startX, r32 startY, r32 startZ, r32 endX, r32 endY, r32 endZ, r32 percent);
-
-//NOTE: returns a random point within a unit-sphere. Can also be looked at as a random direction whose
-//      magnitude is between 0 and 1.
-#ifdef JM_MATH_USE_STDLIB
-inline v3 jmRandInUnitSphere(r32 scalar);
-#endif
 
 //NOTE: checks if a and b are almost equal. Threshold is based on JM_EPSILON
 inline b32 jmApproximately(v3 a, v3 b);
@@ -882,66 +870,6 @@ jmClampInRect(v2 current, v2 min, v2 max) {
     return result;
 }
 
-#define RAND48_SEED_0 (0x330e)
-#define RAND48_SEED_1 (0xabcd)
-#define RAND48_SEED_2 (0x1234)
-#define RAND48_MULT_0 (0xe66d)
-#define RAND48_MULT_1 (0xdeec)
-#define RAND48_MULT_2 (0x0005)
-#define RAND48_ADD (0x000b)
-
-u16 _rand48_seed[3] = {RAND48_SEED_0, RAND48_SEED_1, RAND48_SEED_2};
-u16 _rand48_mult[3] = {RAND48_MULT_0, RAND48_MULT_1, RAND48_MULT_2};
-u16 _rand48_add     = RAND48_ADD;
-
-void
-_dorand48(u16 xseed[3]) {
-    u64 accu;
-    u16 temp[2];
-
-    accu    = (u64)_rand48_mult[0] * (u64)xseed[0] + (u64)_rand48_add;
-    temp[0] = (u16)accu; /* lower 16 bits */
-    accu >>= sizeof(u16) * 8;
-    accu += (u64)_rand48_mult[0] * (u64)xseed[1] + (u64)_rand48_mult[1] * (u64)xseed[0];
-    temp[1] = (u16)accu; /* middle 16 bits */
-    accu >>= sizeof(u16) * 8;
-    accu += _rand48_mult[0] * xseed[2] + _rand48_mult[1] * xseed[1] + _rand48_mult[2] * xseed[0];
-    xseed[0] = temp[0];
-    xseed[1] = temp[1];
-    xseed[2] = (u16)accu;
-}
-
-double
-erand48(u16 xseed[3]) {
-    _dorand48(xseed);
-    return ldexp((double)xseed[0], -48) + ldexp((double)xseed[1], -32) + ldexp((double)xseed[2], -16);
-}
-
-double
-drand48() {
-    return erand48(_rand48_seed);
-}
-
-void
-srand48(long seed) {
-    _rand48_seed[0] = RAND48_SEED_0;
-    _rand48_seed[1] = (u16)seed;
-    _rand48_seed[2] = (u16)(seed >> 16);
-    _rand48_mult[0] = RAND48_MULT_0;
-    _rand48_mult[1] = RAND48_MULT_1;
-    _rand48_mult[2] = RAND48_MULT_2;
-    _rand48_add     = RAND48_ADD;
-}
-
-#ifdef JM_MATH_USE_STDLIB
-inline v2
-jmRandInUnitCircle(r32 scalar = 1.0f) {
-    v2 result = {
-        (r32)drand48() * 2.0f - 1.0f, (r32)drand48() * 2.0f - 1.0f,
-    };
-    return jmNormalized(result) * scalar * (r32)drand48();
-}
-#endif
 
 //=========================================================================================================
 //
