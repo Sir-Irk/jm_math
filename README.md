@@ -11,3 +11,5 @@ You can use the following defines _before_ including this file to change what is
 * JM_MATH_USE_AVX : will include avx functions
 * JM_MATH_USE_SSE_TRANSCENDENTALS : Needed for some sse functions. Currently requires an external file for sin_ps() and cos_ps() implementations
 * JM_USE_SIMD_ALL : include all simd related functions(may exclude transcendentals)
+
+TODO: Clean up the simd functions. Have auto detect for sse/avx and include them by default.
